@@ -1,4 +1,4 @@
-const CACHE_KEY = 'vts-tpw-v3';
+const CACHE_KEY = 'vts-tpw-v1';
 
 const clearCaches = async () => {
     for (const key of await caches.keys()) {
