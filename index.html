@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="jquery.min.js"></script>
+</head>
+
+<body style="background: lightblue">
+	<h1>Outside heading</h1>
+	<p>Network status: <span id="netstatus" style="font-weight: bold;">online</span></p>
+	<div id="iframecontainer" style="position:relative;">
+		<div id="connection-problem" style="position:absolute; width:200px; height:100px; background: lightcyan; margin: 30px; text-align: center; padding: 10px; display: none;">
+			<p style="font-weight: bold;color:red;">We are trying to restore connection...</p>
+		</div>
+		<iframe title="myframe" id="myframe" width="600" height="400"> </iframe>
+	</div>
+	<p>
+		<input id="one" type="button" value="One" />
+		<input id="two" type="button" value="Two" />
+	</p>
+	<p>
+		<input id="check" type="button" value="Check connectivity" />
+	</p>
+	<p>
+		<input id="url" type="text" value="http://example.com/" />
+		<input id="go" type="button" value="Go" />
+	</p>
+
+	<script>
+		// Don't register the service worker
+		// until the page has fully loaded
+		window.addEventListener('load', () => {
+			// Is service worker available?
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker
+					.register('/serviceworker.js')
+					.then(() => {
+						console.log('Service worker registered!');
+					})
+					.catch((error) => {
+						console.warn('Error registering service worker:');
+						console.warn(error);
+					});
+			}
+		});
+	</script>
+
+	<script>
+		let reconnectInterval;
+
+		$(document).ready(function () {
+			var iframe = document.getElementById('myframe');
+			iframe.src = 'one.html';
+			iframe.onreadystatechange = function () {
+				console.log('STATE: ' + iframe.readyState);
+			};
+
+			iframe.onload = function (e) {
+				let hasContent = $('#myframe').contents().find("html body").children().length != 0;
+
+				if (hasContent) {
+					$('#connection-problem').hide();
+					if (reconnectInterval) {
+						clearInterval(reconnectInterval);
+						reconnectInterval = undefined;
+					}
+				} else {
+					$('#connection-problem').show();
+					if (!reconnectInterval) {
+						reconnectInterval = setInterval(function () {
+							console.log('Trying to reload...')
+							let f = $('#myframe')[0];
+							//f.contentWindow.location.reload();
+							f.src = f.src;
+						}, 2000);
+					}
+				}
+
+				console.log('load event fired, hasContent=' + hasContent + ', event='+ e);
+			};
+
+			iframe.onerror = function () {
+				console.log('error event fired');
+			};
+
+			$(window).on('message', function (e) {
+				console.log('message received: ' + e.data);
+			});
+
+			$(window).on('online', function () {
+				$('#netstatus').text('online');
+			});
+
+			$(window).on('offline', function () {
+				$('#netstatus').text('offline');
+			});
+
+			$('#go').on('click', function () {
+				var iframe = document.getElementById('myframe');
+				iframe.src = $('#url').val();
+			});
+			$('#one').on('click', function () {
+				var iframe = document.getElementById('myframe');
+				iframe.src = 'one.html';
+			});
+			$('#two').on('click', function () {
+				var iframe = document.getElementById('myframe');
+				iframe.src = 'two.html';
+			});
+			$('#check').on('click', function () {
+				if (navigator.onLine) {
+					console.log('You are online');
+				} else {
+					console.log('You are offline');
+				}
+			});
+		});
+	</script>
+</body>
+
+</html>

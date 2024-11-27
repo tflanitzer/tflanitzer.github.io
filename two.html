@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="jquery.min.js"></script>
+
+</head>
+
+<body style="background:lightpink;">
+
+	<h1>Two</h1>
+
+	<div>
+		<input id="next" type="button" value="Next" />
+	</div>
+
+	<script>
+		$(document).ready(function () {
+			$("#next").on("click", function () {
+				window.location = 'one.html';
+			});
+
+			postMessage("Here is Two!")
+		});
+
+	</script>
+</body>
+
+</html>
